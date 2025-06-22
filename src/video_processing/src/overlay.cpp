@@ -2,12 +2,13 @@
 
 namespace video_processing {
 
-void Overlay::applyTextOverlay(cv::Mat& frame, const std::string& text, float delay, float fps) {
+void Overlay::applyTextOverlay(cv::Mat& frame, const std::string& text, float delay, float fps, float latency_ms) {
     std::string full_text = text;
 
     if (delay > 0) {
-        full_text += " | Process time: " + std::to_string(delay);
-        full_text += " | FPS: " + std::to_string(fps);
+        full_text += " | Process time (s): " + std::to_string(delay);
+        full_text += " | FPS (Hz): " + std::to_string(fps);
+        full_text += " | Latency (ms): " + std::to_string(latency_ms);
     }
 
     const int font_face = cv::FONT_HERSHEY_SIMPLEX;

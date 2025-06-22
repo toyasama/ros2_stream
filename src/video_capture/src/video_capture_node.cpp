@@ -1,18 +1,24 @@
 #include "video_capture/video_capture_node.hpp"
 #include "cv_bridge/cv_bridge.h"
+#include "rclcpp_components/register_node_macro.hpp"
 
 namespace video_capture {
 
-    VideoCaptureNode::VideoCaptureNode():  Node("video_capture_node"),m_params(this), m_capture(m_params.camera_config) {
+    VideoCaptureNode::VideoCaptureNode(const rclcpp::NodeOptions & options):  Node("video_capture_node", options),m_params(this), m_capture(m_params.camera_config) {
 
         if (!m_capture.isActive()){
-            RCLCPP_FATAL(this->get_logger(), "Camera init failed: capture is not active");
-            rclcpp::shutdown();
+            throw std::runtime_error("Camera init failed: capture is not active");
             return;
         }
-        m_image_pub = image_transport::create_publisher(this, m_params.image_topic_pub, rmw_qos_profile_sensor_data);
+        m_image_pub = this->create_publisher<sensor_msgs::msg::Image>(
+            m_params.image_topic_pub,
+            rclcpp::SensorDataQoS()
+        );
         m_timer = this->create_wall_timer(
             std::chrono::milliseconds(1000 / m_params.camera_config.fps), std::bind(&VideoCaptureNode::captureFrame, this));
+        RCLCPP_INFO(this->get_logger(), "VideoCaptureNode started with intra-process: %s",
+            this->get_node_options().use_intra_process_comms() ? "true" : "false");
+
 
     }
 
@@ -24,8 +30,15 @@ namespace video_capture {
             return;
         }
 
-        auto msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", image.value()).toImageMsg();
-        msg->header.stamp = this->now();
-        m_image_pub.publish(msg);
+    auto msg = std::make_unique<sensor_msgs::msg::Image>();
+    cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", image.value()).toImageMsg(*msg);
+
+    msg->header.stamp = this->now();
+    msg->header.frame_id = "camera";  
+
+    m_image_pub->publish(std::move(msg));
+
     }
+
 }
+RCLCPP_COMPONENTS_REGISTER_NODE(video_capture::VideoCaptureNode)

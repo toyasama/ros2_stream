@@ -5,6 +5,8 @@ namespace video_processing{
         VideoProcessingParams(rclcpp::Node* node);
         std::string image_topic_sub;
         std::string image_topic_pub;
+        int width;
+        int height;
    };
 
 }
