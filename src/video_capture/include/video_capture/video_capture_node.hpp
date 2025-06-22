@@ -15,11 +15,10 @@ namespace video_capture{
 
         private:
             void captureFrame();
-            video_capture_params params_m;
-            Capture capture_m;
-            image_transport::Publisher image_pub_m;
-            rclcpp::TimerBase::SharedPtr timer_m;
-            std::shared_ptr<rclcpp::Time> last_time_m;
+            video_capture_params m_params;
+            Capture m_capture;
+            image_transport::Publisher m_image_pub;
+            rclcpp::TimerBase::SharedPtr m_timer;
             
     };
 }

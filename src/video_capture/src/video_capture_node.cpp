@@ -3,29 +3,26 @@
 
 namespace video_capture {
 
-    VideoCaptureNode::VideoCaptureNode():  Node("video_capture_node"),params_m(this), capture_m(params_m.c_info) {
-        image_pub_m = image_transport::create_publisher(this, "image_raw", rmw_qos_profile_sensor_data);
-        timer_m = this->create_wall_timer(
-            std::chrono::milliseconds(1000 / params_m.c_info.fps), std::bind(&VideoCaptureNode::captureFrame, this));
+    VideoCaptureNode::VideoCaptureNode():  Node("video_capture_node"),m_params(this), m_capture(m_params.c_info) {
+        m_image_pub = image_transport::create_publisher(this, "image_raw", rmw_qos_profile_sensor_data);
+        m_timer = this->create_wall_timer(
+            std::chrono::milliseconds(1000 / m_params.c_info.fps), std::bind(&VideoCaptureNode::captureFrame, this));
     }
 
 
     void VideoCaptureNode::captureFrame(){
-        auto start = this->now();
 
-        const auto image = capture_m.getImage();
+        const auto image = m_capture.getImage();
         if (!image.has_value()){
             RCLCPP_ERROR(this->get_logger(), "No capture");
             return;
         }
 
-        const auto now = this->now();
-        auto msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", image.value()).toImageMsg();
-        msg->header.stamp = now;
-        image_pub_m.publish(msg);
+        cv::Mat frame = image.value();
+        auto msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", frame).toImageMsg();
 
-        auto end = this->now();
-        // RCLCPP_INFO(this->get_logger(), "captureFrame took %.2f ms", (end - start).seconds() * 1000.0);
+        msg->header.stamp = this->now();
+        m_image_pub.publish(msg);
 
     }
 }

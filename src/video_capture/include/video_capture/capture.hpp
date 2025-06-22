@@ -10,7 +10,7 @@ namespace video_capture{
             std::optional<cv::Mat> getImage();
 
         private:
-            cv::VideoCapture video_capture_m;
+            cv::VideoCapture m_video_capture;
     };
 
 }
