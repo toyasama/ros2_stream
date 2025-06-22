@@ -7,10 +7,10 @@
 
 namespace video_processing{
 
-    VideoProcessingNode::VideoProcessingNode():Node("video_processing_node"){
-        m_image_sub = create_subscription<sensor_msgs::msg::Image>("/image_raw", rclcpp::SensorDataQoS(), 
+    VideoProcessingNode::VideoProcessingNode():Node("video_processing_node"), m_params(this){
+        m_image_sub = create_subscription<sensor_msgs::msg::Image>(m_params.image_topic_sub, rclcpp::SensorDataQoS(), 
                         std::bind(&VideoProcessingNode::processImage, this, std::placeholders::_1));
-        m_image_pub = create_publisher<sensor_msgs::msg::Image>("/image_processed", rclcpp::SensorDataQoS());
+        m_image_pub = create_publisher<sensor_msgs::msg::Image>(m_params.image_topic_pub, rclcpp::SensorDataQoS());
     }
 
     void VideoProcessingNode::processImage(const sensor_msgs::msg::Image::SharedPtr msg){

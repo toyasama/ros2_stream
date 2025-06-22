@@ -16,6 +16,7 @@ add_library(video_capture_lib
   src/video_capture_node.cpp
   src/capture.cpp
   src/video_capture_params.cpp
+  src/camera_config.cpp
 )
 
 target_include_directories(video_capture_lib

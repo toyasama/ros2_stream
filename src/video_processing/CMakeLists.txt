@@ -15,6 +15,7 @@ add_library(video_processing_lib
   src/video_processing_node.cpp
   src/filter.cpp
   src/overlay.cpp
+  src/video_processing_params.cpp
 )
 
 target_include_directories(video_processing_lib

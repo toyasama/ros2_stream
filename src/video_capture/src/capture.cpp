@@ -2,29 +2,22 @@
 
 #include <rclcpp/rclcpp.hpp>
 namespace video_capture{
-    Capture::Capture(const capture_info& info ){
+    Capture::Capture(const CameraConfig& config){
 
-        m_video_capture.open(info.device_path, cv::CAP_V4L2);
-        if (!m_video_capture.isOpened()) {
-            RCLCPP_ERROR(rclcpp::get_logger("video capture"), "Failed to open video device: %s", info.device_path.c_str());
-            rclcpp::shutdown();
+        m_video_capture.open(config.device_path, cv::CAP_V4L2);
+        if (!m_video_capture.isOpened())  {
+            RCLCPP_ERROR(rclcpp::get_logger("video capture"), "Failed to open video device: %s", config.device_path.c_str());
+            return;
         }
-        m_video_capture.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
-
-        m_video_capture.set(cv::CAP_PROP_FRAME_WIDTH, info.width);
-        m_video_capture.set(cv::CAP_PROP_FRAME_HEIGHT, info.height);
-        m_video_capture.set(cv::CAP_PROP_FPS, info.fps);
-
-        double actual_width = m_video_capture.get(cv::CAP_PROP_FRAME_WIDTH);
-        double actual_height = m_video_capture.get(cv::CAP_PROP_FRAME_HEIGHT);
-        double actual_fps = m_video_capture.get(cv::CAP_PROP_FPS);
-
-        RCLCPP_INFO(
-            rclcpp::get_logger("video capture"),
-            "Camera initialized at %.0fx%.0f @ %.2f FPS",
-            actual_width, actual_height, actual_fps
-        );
+        
+        config.apply(m_video_capture);
+        config.printConfig(m_video_capture);
     }
+
+    bool Capture::isActive() const {
+        return m_video_capture.isOpened();
+    }
+
 
     std::optional<cv::Mat> Capture::getImage(){
         cv::Mat frame;

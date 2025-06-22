@@ -2,17 +2,19 @@
 
 
 namespace video_capture{
-    video_capture_params::video_capture_params(rclcpp::Node* node){
+    VideoCaptureParams::VideoCaptureParams(rclcpp::Node* node){
 
         node->declare_parameter<std::string>("device_path", "/dev/video0");
         node->declare_parameter<int>("width", 640);
         node->declare_parameter<int>("height", 480);
         node->declare_parameter<int>("fps", 20);
+        node->declare_parameter<std::string>("image_topic_pub", "image_raw");
 
-        node->get_parameter("device_path", c_info.device_path);
-        node->get_parameter("width",  c_info.width);
-        node->get_parameter("height", c_info.height);
-        node->get_parameter("fps", c_info.fps);
+        node->get_parameter("device_path", camera_config.device_path);
+        node->get_parameter("width",  camera_config.width);
+        node->get_parameter("height", camera_config.height);
+        node->get_parameter("fps", camera_config.fps);
+        node->get_parameter("image_topic_pub", image_topic_pub);
 
     }
 }
