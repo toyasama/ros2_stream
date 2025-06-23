@@ -1,24 +1,17 @@
-# Official ROS2 Humble image with desktop support
-FROM osrf/ros:humble-desktop
+FROM ros:humble
 
-# Python and system dependencies
-RUN apt-get update && \
-    apt-get install -y \
-    python3-pip \
-    git \
-    build-essential \
+RUN apt-get update && apt-get install -y \
+    python3-colcon-common-extensions \
     ros-humble-rmw-cyclonedds-cpp \
-    sudo && \
-    rm -rf /var/lib/apt/lists/*
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
 
-# Extra dependencies
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     ros-humble-image-transport-plugins \
     v4l-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Install MediaMTX (RTSP server)
 RUN apt-get update && \
     apt-get install -y \
     wget && \
@@ -29,29 +22,14 @@ RUN wget https://github.com/bluenviron/mediamtx/releases/download/v1.11.1/mediam
     && rm /tmp/mediamtx.tar.gz \
     && chmod +x /usr/local/bin/mediamtx
     
-# Create non-root user for development
 ARG USERNAME=devuser
-ARG USER_UID=1000
-ARG USER_GID=1000
-
-RUN groupadd --gid $USER_GID $USERNAME && \
-    useradd --uid $USER_UID --gid $USER_GID -m $USERNAME && \
-    echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME && \
-    chmod 0440 /etc/sudoers.d/$USERNAME &&\
-    usermod -aG video devuser
-
+RUN useradd -ms /bin/bash $USERNAME  && usermod -aG video $USERNAME
 USER $USERNAME
 WORKDIR /home/$USERNAME
 
-# Improve shell prompt and history behavior
-RUN sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' ~/.bashrc && \
-    echo 'HISTFILE=~/.bash_history' >> ~/.bashrc && \
-    echo 'HISTSIZE=1000' >> ~/.bashrc && \
-    echo 'HISTFILESIZE=2000' >> ~/.bashrc && \
-    echo 'shopt -s histappend' >> ~/.bashrc && \
-    echo 'PROMPT_COMMAND="history -a; $PROMPT_COMMAND"' >> ~/.bashrc
+RUN mkdir -p /home/$USERNAME/workspace/src
+COPY --chown=$USERNAME:$USERNAME ../src /home/$USERNAME/workspace/src
 
-# Configure ROS2 and Cyclone DDS environment
 COPY cyclonedds.xml /etc/cyclonedds.xml
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc && \
     echo "[ -f /home/$USERNAME/workspace/install/setup.bash ] && source /home/$USERNAME/workspace/install/setup.bash" >> ~/.bashrc && \
@@ -59,10 +37,12 @@ RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc && \
     echo "export CYCLONEDDS_URI=file:///etc/cyclonedds.xml" >> ~/.bashrc
 
 COPY setup.bash /setup.bash
-USER root 
+USER root
 RUN chmod +x /setup.bash
 RUN echo "source /setup.bash" >> /home/$USERNAME/.bashrc
-
 USER $USERNAME
 
-CMD ["sleep", "infinity"]
+WORKDIR /home/$USERNAME/workspace
+RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build --symlink-install"
+
+CMD ["/bin/bash", "-c", "source /opt/ros/humble/setup.bash && source install/setup.bash && ros2 launch ros_stream ros_stream_launch.py"]

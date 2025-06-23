@@ -1,0 +1,44 @@
+
+x-ros2-common: &ros2-common
+  build:
+    context: ..
+    dockerfile: compose/Dockerfile
+  network_mode: host
+  privileged: true
+  user: devuser
+  environment:
+    DISPLAY: "${DISPLAY}"
+    XAUTHORITY: "${XAUTHORITY}"
+    XDG_RUNTIME_DIR: "${XDG_RUNTIME_DIR}"
+    QT_X11_NO_MITSHM: "1"
+  volumes:
+    - /tmp/.X11-unix:/tmp/.X11-unix
+    - ./wait_for_topic.bash:/usr/local/bin/wait_for_topic.bash
+  devices:
+    - /dev/video0:/dev/video0
+  cap_add:
+    - SYS_ADMIN
+  tty: true
+  stdin_open: true
+
+services:
+  ros2_launcher:
+    <<: *ros2-common
+    container_name: ros2_stream_launcher
+    command: >
+      /bin/bash -c
+      "source /opt/ros/humble/setup.bash &&
+       source install/setup.bash &&
+       ros2 launch ros_stream ros_stream_launch.py"
+
+  ros2_viewer:
+    <<: *ros2-common
+    container_name: ros2_stream_viewer
+    depends_on:
+      - ros2_launcher
+    entrypoint: ["/bin/bash", "/usr/local/bin/wait_for_topic.bash"]
+    command: >
+      /bin/bash -c
+      "source /opt/ros/humble/setup.bash &&
+       source install/setup.bash &&
+       ros2 launch ros_stream show_launch.py"

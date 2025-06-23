@@ -1,0 +1,43 @@
+{
+    "name": "ros2_stream",
+    "build": {
+        "dockerfile": "./Dockerfile",
+        "context": "..",
+        "options": [
+            "--tag=ros2_stream_code:latest"
+        ]
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "editor.formatOnSave": true
+            }
+        }
+    },
+    "postCreateCommand": "colcon build --symlink-install && . install/setup.bash",
+    "remoteUser": "devuser",
+    "workspaceFolder": "/home/devuser/workspace",
+    "mounts": [
+        "source=${localWorkspaceFolder},target=/home/devuser/workspace,type=bind,consistency=cached"
+    ],
+    "containerEnv": {
+        "DISPLAY": "${localEnv:DISPLAY}",
+        "XAUTHORITY": "${localEnv:XAUTHORITY}",
+        "QT_X11_NO_MITSHM": "1",
+        "HOST_USER": "${localEnv:USER}",
+        "HOST_WS_MOUNT": "${localWorkspaceFolder}",
+        "WORKSPACE_PATH": "/home/devuser/workspace"
+    },
+    "runArgs": [
+        "-v",
+        "/tmp/.X11-unix:/tmp/.X11-unix",
+        "--device=/dev/video0",
+        "--env=DISPLAY=${localEnv:DISPLAY}",
+        "--env=XAUTHORITY=${localEnv:XAUTHORITY}",
+        "--env=QT_X11_NO_MITSHM=1",
+        "--name=ros2_stream_dev_container",
+        "--network=host",
+        "--privileged"
+    ]
+}
