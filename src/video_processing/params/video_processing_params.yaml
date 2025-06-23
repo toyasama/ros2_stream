@@ -1,0 +1,6 @@
+video_processing_node:
+  ros__parameters:
+    image_topic_sub: "/video_capture/image"
+    image_topic_pub: "/video_processing/image"
+    width: 1280
+    height: 720

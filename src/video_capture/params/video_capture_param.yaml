@@ -1,0 +1,7 @@
+video_capture_node:
+  ros__parameters:
+    device_path: "/dev/video0"
+    width: 1280
+    height: 720
+    fps: 20  
+    image_topic_pub: "/video_capture/image"
