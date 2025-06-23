@@ -104,8 +104,6 @@ ln -s /absolute/path/to/ros2_stream .
 ```bash
 cd ~/ros2_ws
 source /opt/ros/humble/setup.bash
-rosdep update
-rosdep install --from-paths src --ignore-src -r -y
 colcon build --symlink-install
 ```
 
